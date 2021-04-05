@@ -84,15 +84,7 @@ func (c *Client) DayWorkEntries(date string, eid string) ([]*WorkEntryResponse, 
 }
 
 func (c *Client) PostHours(entries []*WorkEntry) error {
-	batch := make(map[string][]*WorkEntry)
-	for _, v := range entries {
-		entries := []*WorkEntry{v}
-		if existing, ok := batch[v.DateTime]; ok {
-			entries = append(entries, existing...)
-		}
-		batch[v.DateTime] = entries
-	}
-
+	batch := batchHoursByDate(entries)
 	batchKeys := make([]string, 0, len(batch))
 	for k := range batch {
 		batchKeys = append(batchKeys, k)
@@ -207,6 +199,18 @@ type WorkEntryRequest struct {
 type WorkEntryRequestField struct {
 	Action string `json:"@Action"`
 	*WorkEntry
+}
+
+func batchHoursByDate(entries []*WorkEntry) map[string][]*WorkEntry {
+	batch := make(map[string][]*WorkEntry)
+	for _, v := range entries {
+		entries := []*WorkEntry{v}
+		if existing, ok := batch[v.DateTime]; ok {
+			entries = append(entries, existing...)
+		}
+		batch[v.DateTime] = entries
+	}
+	return batch
 }
 
 func NewClient(token, host string) *Client {
