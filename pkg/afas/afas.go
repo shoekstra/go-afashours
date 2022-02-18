@@ -8,6 +8,7 @@ import (
 
 	gttimeentry "github.com/dougEfresh/gtoggl-api/gttimentry"
 	"github.com/mitchellh/mapstructure"
+	"github.com/shoekstra/go-afashours/pkg/csv"
 	"github.com/tim-online/go-afas-profit-rest"
 )
 
@@ -225,19 +226,30 @@ func NewClient(token, host string) *Client {
 	return &Client{API: client}
 }
 
-func NewWorkEntry(te *gttimeentry.TimeEntry, employeeNumber, pcode, ptype string) (*WorkEntry, error) {
-	return &WorkEntry{
+func NewWorkEntry(v interface{}, employeeNumber, pcode, ptype string) (*WorkEntry, error) {
+	we := &WorkEntry{
 		UnknownCandidate: false,
-		DateTime:         te.Start.Format("2006-01-02"),
 		VaIt:             "1",
 		ItemCode:         ptype,
 		EmployeeNumber:   employeeNumber,
 		ProjectID:        pcode,
-		Description:      te.Description,
 		StID:             "1",
-		StartTime:        te.Start.Format("15:04:05"),
-		EndTime:          te.Stop.Format("15:04:05"),
 		ExAp:             false,
 		InPu:             false,
-	}, nil
+	}
+
+	switch te := v.(type) {
+	case *csv.Line:
+		we.DateTime = te.Start.Format("2006-01-02")
+		we.Description = te.Description
+		we.StartTime = te.Start.Format("15:04:05")
+		we.EndTime = te.Stop.Format("15:04:05")
+	case *gttimeentry.TimeEntry:
+		we.DateTime = te.Start.Format("2006-01-02")
+		we.Description = te.Description
+		we.StartTime = te.Start.Format("15:04:05")
+		we.EndTime = te.Stop.Format("15:04:05")
+	}
+
+	return we, nil
 }

@@ -8,6 +8,7 @@ replace github.com/tim-online/go-afas-profit-rest => github.com/shoekstra/go-afa
 
 require (
 	github.com/dougEfresh/gtoggl-api v0.0.0-20200303083000-7924af45c7f9
+	github.com/gocarina/gocsv v0.0.0-20211203214250-4735fba0c1d9
 	github.com/gomodule/redigo v1.8.4 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.1.2

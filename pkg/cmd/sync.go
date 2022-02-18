@@ -25,6 +25,7 @@ func syncCmd() *cobra.Command {
 		SilenceUsage:  true,
 	}
 
+	cmd.AddCommand(syncCsvCmd())
 	cmd.AddCommand(syncTogglCmd())
 
 	return cmd
