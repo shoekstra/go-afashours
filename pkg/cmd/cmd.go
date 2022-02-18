@@ -16,16 +16,22 @@ var (
 )
 
 // cmd represents the "afashours-cli" command when called without any subcommands.
-var cmd = &cobra.Command{
-	Use:           "afashours-cli",
-	Short:         "afashours-cli registers time in AFAS using the Hours API",
-	SilenceErrors: true,
+func cmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:           "afashours-cli",
+		Short:         "afashours-cli registers time in AFAS using the Hours API",
+		SilenceErrors: true,
+	}
+
+	cmd.AddCommand(syncCmd())
+
+	return cmd
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the cmd.
 func Execute() {
-	if err := cmd.Execute(); err != nil {
+	if err := cmd().Execute(); err != nil {
 		fmt.Printf("Error: %s\n", err)
 		os.Exit(1)
 	}
@@ -33,8 +39,6 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	initSyncCmd()
 }
 
 // initConfig reads in config file and ENV variables if set.
