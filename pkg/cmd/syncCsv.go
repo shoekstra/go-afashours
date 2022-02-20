@@ -34,11 +34,12 @@ func syncCsvCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.afashours-cli.yaml)")
-	cmd.Flags().StringVarP(&csvFile, "csv-file", "f", "", "path to CSV file")
-	cmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "perform a dry run")
-	cmd.Flags().BoolVarP(&test, "test", "t", false, "use the test REST endpoint")
-	cmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "verbose")
+	cmd.Flags().StringVarP(&cfgFile, "config", "c", "", "Config file (default is $HOME/.afashours-cli.yaml)")
+	cmd.Flags().StringVarP(&csvFile, "csv-file", "f", "", "Path to CSV file")
+	cmd.Flags().BoolP("help", "h", false, "Help for "+cmd.Name())
+	cmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "Perform a dry run")
+	cmd.Flags().BoolVarP(&test, "test", "t", false, "Use the test REST endpoint")
+	cmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Verbose")
 
 	_ = cmd.Flags().MarkHidden("dry-run")
 	_ = cmd.Flags().MarkHidden("test")

@@ -23,6 +23,8 @@ func cmd() *cobra.Command {
 		SilenceErrors: true,
 	}
 
+	cmd.Flags().BoolP("help", "h", false, "Help for "+cmd.Name())
+
 	cmd.AddCommand(syncCmd())
 
 	return cmd
