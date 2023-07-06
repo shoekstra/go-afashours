@@ -9,11 +9,14 @@ import (
 )
 
 type config struct {
-	AfasAccount    *string      `mapstructure:"afas_account"`
-	AfasToken      *string      `mapstructure:"afas_token"`
-	EmployeeNumber *string      `mapstructure:"employee_number"`
-	Projects       *projects    `mapstructure:"projects"`
-	Toggl          *togglConfig `mapstructure:"toggl"`
+	AfasAccount    *string      `mapstructure:"afas_account" yaml:"afas_account"`
+	AfasToken      *string      `mapstructure:"afas_token" yaml:"afas_token"`
+	EmployeeNumber *string      `mapstructure:"employee_number" yaml:"employee_number"`
+	Projects       *projects    `mapstructure:"projects" yaml:"projects"`
+	Toggl          *togglConfig `mapstructure:"toggl" yaml:"toggl"`
+
+	// Mode sets the config mode, such as "init" or "sync".
+	Mode string
 }
 
 func (c *config) validate() error {
@@ -37,16 +40,19 @@ func (c *config) validate() error {
 		return fmt.Errorf("Employee number not found in config file %s, set it using the employee_number key", viper.ConfigFileUsed())
 	}
 
-	if c.Projects == nil {
-		return fmt.Errorf("No projects found in config file %s, set them using the projects key", viper.ConfigFileUsed())
+	// Validate we have configured projects when in sync mode.
+	if c.Mode == "sync" {
+		if c.Projects == nil {
+			return fmt.Errorf("No projects found in config file %s, set them using the projects key", viper.ConfigFileUsed())
+		}
 	}
 
 	return nil
 }
 
 type project struct {
-	Code string `mapstructure:"project"`
-	Type string `mapstructure:"type"`
+	Code string `mapstructure:"project" yaml:"project"`
+	Type string `mapstructure:"type" yaml:"type"`
 }
 
 type projects map[string]*project
@@ -72,16 +78,34 @@ type togglConfig struct {
 	Token *string `mapstructure:"token"`
 }
 
-func newConfig() (*config, error) {
+type configOpts func(*config)
+
+func withMode(mode string) configOpts {
+	return func(c *config) {
+		c.Mode = mode
+	}
+}
+
+func newConfig(opts ...configOpts) (*config, error) {
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, err
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			return &config{}, nil
+		} else {
+			return nil, err
+		}
 	}
 
-	cfg := &config{}
+	cfg := &config{
+		Mode: "sync", // Default mode is "sync".
+	}
+
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
 	if err := viper.Unmarshal(&cfg); err != nil {
 		return nil, err
 	}
-
 	if err := cfg.validate(); err != nil {
 		return nil, err
 	}

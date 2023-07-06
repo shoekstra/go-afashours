@@ -14,6 +14,8 @@ import (
 
 type Client struct {
 	*afas.API
+	Projects     Projects
+	ProjectTypes ProjectTypes
 }
 
 func (c *Client) DeleteHours(we []*WorkEntryResponse) error {
@@ -84,6 +86,48 @@ func (c *Client) DayWorkEntries(date string, eid string) ([]*WorkEntryResponse, 
 	return entries, nil
 }
 
+func (c *Client) GetProjects() error {
+	r := c.Connector.NewListRequest()
+	r.URLParams().ConnectorID = "_Hours_Projects"
+	r.QueryParams().Take = 9999
+
+	_, err := r.Do()
+	if err != nil {
+		return err
+	}
+
+	for _, v := range r.ResponseBody().Rows.([]interface{}) {
+		p := Project{}
+		if err := mapstructure.Decode(v, &p); err != nil {
+			return err
+		}
+		c.Projects = append(c.Projects, &p)
+	}
+
+	return nil
+}
+
+func (c *Client) GetProjectTypes() error {
+	r := c.Connector.NewListRequest()
+	r.URLParams().ConnectorID = "_Hours_Types"
+	r.QueryParams().Take = 9999
+
+	_, err := r.Do()
+	if err != nil {
+		return err
+	}
+
+	for _, v := range r.ResponseBody().Rows.([]interface{}) {
+		t := ProjectType{}
+		if err := mapstructure.Decode(v, &t); err != nil {
+			return err
+		}
+		c.ProjectTypes = append(c.ProjectTypes, &t)
+	}
+
+	return nil
+}
+
 func (c *Client) PostHours(entries []*WorkEntry) error {
 	batch := batchHoursByDate(entries)
 	batchKeys := make([]string, 0, len(batch))
@@ -151,6 +195,35 @@ func (c *Client) PostHours(entries []*WorkEntry) error {
 	}
 
 	return nil
+}
+
+type Project struct {
+	Administration float64 `mapstructure:"administratie"`
+	Name           string  `mapstructure:"project"`
+	Group          string  `mapstructure:"project_group"`
+	ID             string  `mapstructure:"project_id"`
+	StartDate      string  `mapstructure:"start_date"`
+	EndDate        string  `mapstructure:"end_date"`
+}
+
+type Projects []*Project
+
+type ProjectType struct {
+	Description      string `mapstructure:"description"`
+	IntegrationGroup string `mapstructure:"integration_group"`
+	ItemCode         string `mapstructure:"item_code"`
+}
+
+type ProjectTypes []*ProjectType
+
+func (pt *ProjectTypes) FilterByGroup(group string) []*ProjectType {
+	result := []*ProjectType{}
+	for _, v := range *pt {
+		if v.IntegrationGroup == group {
+			result = append(result, v)
+		}
+	}
+	return result
 }
 
 type WorkEntry struct {

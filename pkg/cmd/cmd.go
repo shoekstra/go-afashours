@@ -25,6 +25,7 @@ func cmd() *cobra.Command {
 
 	cmd.Flags().BoolP("help", "h", false, "Help for "+cmd.Name())
 
+	cmd.AddCommand(initCmd())
 	cmd.AddCommand(syncCmd())
 
 	return cmd
