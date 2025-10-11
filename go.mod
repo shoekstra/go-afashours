@@ -1,8 +1,8 @@
 module github.com/shoekstra/go-afashours
 
-go 1.17
+go 1.23.1
 
-replace github.com/dougEfresh/gtoggl-api => github.com/shoekstra/gtoggl-api v0.0.0-20201223232228-04d5e2238395
+replace github.com/dougEfresh/gtoggl-api => github.com/shoekstra/gtoggl-api v0.0.0-20251011122832-7f0091707e99
 
 replace github.com/tim-online/go-afas-profit-rest => github.com/shoekstra/go-afas-profit-rest v0.0.0-20201219163557-76c868b71cc3
 
@@ -19,9 +19,8 @@ require (
 require (
 	github.com/cydev/zero v0.0.0-20160322155811-4a4535dd56e7 // indirect
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
-	github.com/gomodule/redigo v1.8.4 // indirect
 	github.com/gorilla/schema v1.1.0 // indirect
-	github.com/hashicorp/golang-lru v0.5.1 // indirect
+	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
@@ -30,7 +29,7 @@ require (
 	github.com/spf13/cast v1.3.0 // indirect
 	github.com/spf13/jwalterweatherman v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/testify v1.5.1 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/throttled/throttled v2.2.5+incompatible // indirect
 	golang.org/x/sys v0.0.0-20190624142023-c5567b49c5d0 // indirect
