@@ -1,23 +1,44 @@
 package toggl
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/dougEfresh/gtoggl-api/gthttp"
-	"github.com/dougEfresh/gtoggl-api/gtproject"
-	gttimeentry "github.com/dougEfresh/gtoggl-api/gttimentry"
-	"github.com/dougEfresh/gtoggl-api/gtworkspace"
+	togglapi "github.com/shoekstra/go-toggl"
 )
 
 type Client struct {
-	*gthttp.TogglHttpClient
+	togglClient *togglapi.Client
 	Projects    Projects
 	WorkSpaceID int
 }
 
+// TimeEntry holds the fields from a Toggl time entry needed by the rest of the
+// application. Description and Stop are unwrapped from the pointers returned by
+// the go-toggl client, and Project is enriched from the workspace project list.
+type TimeEntry struct {
+	ProjectID   *int
+	Project     *togglapi.Project
+	Start       time.Time
+	Stop        time.Time
+	Description string
+}
+
+type Projects []*togglapi.Project
+
+// GetByID returns the project with the given ID, or nil if not found.
+func (ps Projects) GetByID(id int) *togglapi.Project {
+	for _, v := range ps {
+		if v.ID == id {
+			return v
+		}
+	}
+	return nil
+}
+
 func (c *Client) GetProjects() error {
-	projects, err := gtproject.NewClient(c.TogglHttpClient).List(c.WorkSpaceID)
+	projects, _, err := c.togglClient.Projects.ListProjects(context.Background(), c.WorkSpaceID, nil)
 	if err != nil {
 		return err
 	}
@@ -26,37 +47,41 @@ func (c *Client) GetProjects() error {
 	return nil
 }
 
-func (c *Client) GetTimeEntries(start, end time.Time) ([]*gttimeentry.TimeEntry, error) {
-	result, err := gttimeentry.NewClient(c.TogglHttpClient).GetRange(start, end)
+func (c *Client) GetTimeEntries(start, end time.Time) ([]*TimeEntry, error) {
+	opts := &togglapi.ListTimeEntriesOptions{
+		StartDate: togglapi.String(start.Format("2006-01-02")),
+		EndDate:   togglapi.String(end.Format("2006-01-02")),
+	}
+
+	result, _, err := c.togglClient.TimeEntries.ListTimeEntries(context.Background(), opts)
 	if err != nil {
 		return nil, err
 	}
 
-	entries := []*gttimeentry.TimeEntry{}
+	entries := make([]*TimeEntry, 0, len(result))
 
 	for _, v := range result {
-		p := c.Projects.GetByPID(v.Pid)
-		v.Project = &p
-		e := v
-		entries = append(entries, &e)
+		te := &TimeEntry{
+			ProjectID: v.ProjectID,
+			Start:     v.Start,
+		}
+		if v.Stop != nil {
+			te.Stop = *v.Stop
+		}
+		if v.Description != nil {
+			te.Description = *v.Description
+		}
+		if v.ProjectID != nil {
+			te.Project = c.Projects.GetByID(*v.ProjectID)
+		}
+		entries = append(entries, te)
 	}
 
 	return entries, nil
 }
 
-type Projects []gtproject.Project
-
-func (ps Projects) GetByPID(pid uint64) gtproject.Project {
-	for _, v := range ps {
-		if v.Id == pid {
-			return v
-		}
-	}
-	return gtproject.Project{}
-}
-
 func NewClient(token string) (*Client, error) {
-	client, err := gthttp.NewClient(token)
+	client, err := togglapi.NewClient(token)
 	if err != nil {
 		return nil, err
 	}
@@ -66,14 +91,12 @@ func NewClient(token string) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{TogglHttpClient: client, WorkSpaceID: wid}, nil
+	return &Client{togglClient: client, WorkSpaceID: wid}, nil
 }
 
 // workspaceID returns the workspace ID. For now only a single workspace is supported.
-func workspaceID(tc *gthttp.TogglHttpClient) (int, error) {
-	client := gtworkspace.NewClient(tc)
-
-	ws, err := client.List()
+func workspaceID(tc *togglapi.Client) (int, error) {
+	ws, _, err := tc.Workspaces.ListWorkspaces(context.Background())
 	if err != nil {
 		return 0, err
 	}
@@ -84,6 +107,6 @@ func workspaceID(tc *gthttp.TogglHttpClient) (int, error) {
 	case len(ws) > 1:
 		return 0, fmt.Errorf("more than one workspace is not yet supported")
 	default:
-		return int(ws[0].Id), nil
+		return ws[0].ID, nil
 	}
 }

@@ -1,0 +1,58 @@
+version: "3"
+
+tasks:
+  test:
+    desc: Run all tests with race detector
+    cmds:
+      - go test -v -race -coverprofile=coverage.out ./...
+
+  test:coverage:
+    desc: Run tests and display coverage
+    cmds:
+      - go test -race -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage.out -o coverage.html
+
+  coverage:
+    desc: Show test coverage percentage
+    cmds:
+      - go test -race -coverprofile=coverage.out ./...
+      - go tool cover -func=coverage.out | tail -1
+
+  fmt:
+    desc: Format code
+    cmds:
+      - go fmt ./...
+
+  vet:
+    desc: Run go vet
+    cmds:
+      - go vet ./...
+
+  build:
+    desc: Build the CLI binary
+    cmds:
+      - go build -o bin/afashours-cli ./cmd/afashours-cli
+
+  clean:
+    desc: Clean up build artifacts and coverage files
+    cmds:
+      - rm -f coverage.out coverage.html
+      - rm -rf bin/
+
+  deps:
+    desc: Download and verify dependencies
+    cmds:
+      - go mod download
+      - go mod verify
+
+  tidy:
+    desc: Tidy go.mod and go.sum
+    cmds:
+      - go mod tidy
+
+  all:
+    desc: Run fmt, vet, and test
+    cmds:
+      - task: fmt
+      - task: vet
+      - task: test
