@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"sort"
 
-	gttimeentry "github.com/dougEfresh/gtoggl-api/gttimentry"
 	"github.com/mitchellh/mapstructure"
 	"github.com/shoekstra/go-afashours/pkg/csv"
+	"github.com/shoekstra/go-afashours/pkg/toggl"
 	"github.com/tim-online/go-afas-profit-rest"
 )
 
@@ -317,7 +317,7 @@ func NewWorkEntry(v interface{}, employeeNumber, pcode, ptype string) (*WorkEntr
 		we.Description = te.Description
 		we.StartTime = te.Start.Format("15:04:05")
 		we.EndTime = te.Stop.Format("15:04:05")
-	case *gttimeentry.TimeEntry:
+	case *toggl.TimeEntry:
 		we.DateTime = te.Start.Format("2006-01-02")
 		we.Description = te.Description
 		we.StartTime = te.Start.Format("15:04:05")

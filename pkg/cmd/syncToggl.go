@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strings"
 
-	gttimeentry "github.com/dougEfresh/gtoggl-api/gttimentry"
 	"github.com/shoekstra/go-afashours/pkg/afas"
 	"github.com/shoekstra/go-afashours/pkg/toggl"
 	"github.com/spf13/cobra"
@@ -152,7 +151,7 @@ The sync command is used to synchronise hour registrations from supported
 sources to AFAS using the hours API.`)
 }
 
-func printTogglProjectMatchReport(good, bad, missing []*gttimeentry.TimeEntry) {
+func printTogglProjectMatchReport(good, bad, missing []*toggl.TimeEntry) {
 	if len(bad) > 0 {
 		fmt.Printf("  * %2d time entries with no project set\n", len(bad))
 		if verbose {
@@ -198,14 +197,14 @@ func validReportMonth() error {
 	return nil
 }
 
-func validateTogglTimeEntries(te []*gttimeentry.TimeEntry, projects []string) (good, bad, empty []*gttimeentry.TimeEntry) {
+func validateTogglTimeEntries(te []*toggl.TimeEntry, projects []string) (good, bad, empty []*toggl.TimeEntry) {
 	for _, v := range te {
-		if v.Pid == 0 {
+		if v.ProjectID == nil {
 			empty = append(empty, v)
 			continue
 		}
 
-		if !contains(projects, v.Project.Name) {
+		if v.Project == nil || !contains(projects, v.Project.Name) {
 			bad = append(bad, v)
 			continue
 		}
